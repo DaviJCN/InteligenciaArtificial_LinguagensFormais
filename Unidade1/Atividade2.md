@@ -4,67 +4,67 @@
 
 ## Bloco 1 (Derivação)
 
-**Dada a gramática $G_1$:**
-$$S \rightarrow aS \mid b$$
+**Dada a gramática G₁:**
+* **S → aS | b**
 
-### A) Gere a palavra *aaab*.
+### A) Gere a palavra `aaab`.
 
 **Passos da derivação:**
-1. $S \Rightarrow aS$ *(aplicando a regra $S \rightarrow aS$)*
-2. $aS \Rightarrow aaS$ *(aplicando a regra $S \rightarrow aS$)*
-3. $aaS \Rightarrow aaaS$ *(aplicando a regra $S \rightarrow aS$)*
-4. $aaaS \Rightarrow aaab$ *(aplicando a regra $S \rightarrow b$)*
+1. `S` ⇒ `aS` *(aplicando S → aS)*
+2. `aS` ⇒ `aaS` *(aplicando S → aS)*
+3. `aaS` ⇒ `aaaS` *(aplicando S → aS)*
+4. `aaaS` ⇒ `aaab` *(aplicando S → b)*
 
-**Resultado:** $S \Rightarrow^* aaab$
+**Resultado:** `S ⇒* aaab`
 
 ---
 
 ### B) Explique como você sabe que a derivação terminou.
 
-A derivação termina quando a forma sentencial gerada é composta **exclusivamente por símbolos terminalis** (no caso, as letras 'a' e 'b'). Não há mais **símbolos não-terminais** (variáveis como '$S$') para serem substituídos por regras de produção.
+A derivação termina quando a forma sentencial gerada é formada **apenas por símbolos terminais** (neste caso, as letras 'a' e 'b'). Não resta nenhum **símbolo não-terminal** (como o 'S') para ser expandido ou substituído por regras de produção.
 
 ---
 
 ## Bloco 2 (GLC - Gramática Livre de Contexto)
 
-**Dada a gramática $G_2$:**
-$$S \rightarrow aSb \mid \varepsilon$$
+**Dada a gramática G₂:**
+* **S → aSb | ε** *(onde ε representa a cadeia vazia)*
 
-### A) Gere a palavra *aaabbb*.
+### A) Gere a palavra `aaabbb`.
 
 **Passos da derivação:**
-1. $S \Rightarrow aSb$ *(aplicando a regra $S \rightarrow aSb$)*
-2. $aSb \Rightarrow aaSbb$ *(aplicando a regra $S \rightarrow aSb$)*
-3. $aaSbb \Rightarrow aaaSbbb$ *(aplicando a regra $S \rightarrow aSb$)*
-4. $aaaSbbb \Rightarrow aaa\varepsilon bbb = aaabbb$ *(aplicando a regra $S \rightarrow \varepsilon$)*
+1. `S` ⇒ `aSb` *(aplicando S → aSb)*
+2. `aSb` ⇒ `aaSbb` *(aplicando S → aSb)*
+3. `aaSbb` ⇒ `aaaSbbb` *(aplicando S → aSb)*
+4. `aaaSbbb` ⇒ `aaabbb` *(aplicando S → ε)*
 
-**Resultado:** $S \Rightarrow^* aaabbb$
+**Resultado:** `S ⇒* aaabbb`
 
 ---
 
-### B) É possível gerar *aabbb*? Justifique.
+### B) É possível gerar `aabbb`? Justifique.
 
 **Resposta:** **Não**, não é possível.
 
 **Justificativa:**
-A gramática $G_2$ gera a linguagem $L(G_2) = \{a^n b^n \mid n \ge 0\}$, onde cada aplicação da regra $S \rightarrow aSb$ adiciona exatamente **um 'a' à esquerda** e **um 'b' à direita** simultaneamente. Portanto, todas as palavras geradas por $G_2$ possuem um número estritamente igual de símbolos 'a' e 'b'. 
+A gramática G₂ gera a linguagem $L(G₂) = \{a^n b^n | n \ge 0\}$. Cada aplicação da regra `S → aSb` insere **simultaneamente** exatamente **um 'a' à esquerda** e **um 'b' à direita**. 
 
-A palavra *aabbb* possui 2 letras 'a' e 3 letras 'b' (quantidades diferentes), logo não pertence à linguagem gerada por $G_2$.
+Consequentemente, qualquer palavra gerada por G₂ precisa ter **o mesmo número de letras 'a' e 'b'**. Como a palavra `aabbb` possui 2 letras 'a' e 3 letras 'b', ela não pode ser gerada por essa gramática.
 
 ---
 
 ## Bloco 3 (Classificação)
 
 **Dada a gramática:**
-$$S \rightarrow aA \mid A \rightarrow b$$ 
-*(Nota: as regras são $S \rightarrow aA$ e $A \rightarrow b$)*
+* **S → aA**
+* **A → b**
 
 ### Classifique como Regular ou Livre de Contexto:
 
-**Classificação:** **Gramática Regular** (e consequentemente também Livre de Contexto, já que toda gramática regular é livre de contexto).
+**Classificação:** **Gramática Regular** *(Linar à Direita)*.
 
 **Justificativa:**
-- Todas as regras de produção têm a forma permitida para uma **Gramática Regular (Linear à Direita)**:
-  - $S \rightarrow aA$ (Símbolo não-terminal gerando um terminal seguido de um não-terminal)
-  - $A \rightarrow b$ (Símbolo não-terminal gerando apenas um terminal)
-- Como toda Gramática Regular cumpre os requisitos de uma Gramática Livre de Contexto (cujo lado esquerdo de cada regra é formado por um único não-terminal), ela pertence a ambas as categorias, sendo especificamente classificada como **Regular**.
+- Uma gramática é **Regular (Linear à Direita)** se todas as suas produções seguem o formato $N 	o tN$ ou $N 	o t$ (onde $N$ é não-terminal e $t$ é terminal).
+  - `S → aA` (Não-terminal gerando terminal + não-terminal)
+  - `A → b` (Não-terminal gerando apenas terminal)
+- *Nota:* Toda gramática regular também é por definição uma Gramática Livre de Contexto (GLC), mas a sua classificação mais específica e restrita é **Gramática Regular**.
