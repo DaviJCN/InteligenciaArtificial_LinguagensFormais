@@ -1,0 +1,230 @@
+# Relatório Prático — Validação de E-mails com Expressões Regulares
+
+## 1. Visão Geral e Objetivos
+
+Este trabalho aborda a implementação de um validador de endereços de e-mail utilizando **Expressões Regulares (Regex)**. O sistema foi desenvolvido para verificar a conformidade sintática das entradas fornecidas em relação às regras de estruturação de e-mails.
+
+A aplicação executa as seguintes etapas:
+
+1. Coleta de **5 endereços de e-mail** informados pelo usuário.
+2. Processamento e validação individual de cada endereço via Regex.
+3. Separação dos dados em duas listas distintas: **e-mails válidos** e **e-mails inválidos**.
+4. Exibição agrupada dos resultados.
+5. Diagnóstico descritivo do motivo da rejeição para cada e-mail inválido.
+
+### Requisitos Adicionais do Desafio
+
+Para aumentar a precisão do validador, foram incorporadas restrições adicionais que impedem:
+
+* Ponto (`.`) na primeira posição do nome de usuário.
+* Ponto (`.`) imediatamente anterior ao caractere `@`.
+* Sequências de dois ou mais pontos consecutivos (`..`).
+* Hífen (`-`) posicionado no início ou no final de qualquer subdomínio.
+
+---
+
+## 2. Estrutura da Expressão Regular
+
+A regra de validação foi consolidada na seguinte sintaxe Regex:
+
+```regex
+^(?!\.)(?!.*\.\.)(?!.*\.@)[A-Za-z0-9_+-]+(?:\.[A-Za-z0-9_+-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z]{2,}$
+
+```
+
+### Decomposição do Padrão
+
+* **`^`**: Ancoragem inicial (delimita o começo da string).
+* **`(?!\.)`**: *Negative Lookahead* que rejeita entradas iniciadas por ponto.
+* **`(?!.*\.\.)`**: Rejeita a ocorrência de pontos consecutivos ao longo do texto.
+* **`(?!.*\.@)`**: Impede a presença de um ponto antes do símbolo `@`.
+* **`[A-Za-z0-9_+-]+`**: Aceita caracteres alfanuméricos e os símbolos `_`, `+` ou `-` no início do usuário.
+* **`(?:\.[A-Za-z0-9_+-]+)*`**: Permite subpartes separadas por ponto no usuário, exigindo sempre caracteres válidos após cada ponto (evitando pontos finais ou duplos).
+* **`@`**: Delimitador obrigatório entre o nome de usuário e o domínio.
+* **`(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\.)+`**: Valida os blocos do domínio, garantindo que cada trecho comece e termine estritamente com letras ou números (barrando hífens nas extremidades).
+* **`[A-Za-z]{2,}$`**: Exige que o TLD (extensão final do domínio) possua no mínimo duas letras e encerra a correspondência (`$`).
+
+---
+
+## 3. Código Fonte em Python
+
+```python
+import re
+
+# Padrão Regex compilado para validação sintática
+padrao_email = (
+    r"^(?!\.)(?!.*\.\.)(?!.*\.@)"
+    r"[A-Za-z0-9_+-]+(?:\.[A-Za-z0-9_+-]+)*"
+    r"@"
+    r"(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\.)+"
+    r"[A-Za-z]{2,}$"
+)
+
+
+def diagnosticar_erro(email):
+    """Mapeia e retorna a justificativa de falha para e-mails inválidos."""
+    qtd_arroba = email.count("@")
+
+    if qtd_arroba == 0:
+        return "Ausência do caractere obrigatório '@'."
+    if qtd_arroba > 1:
+        return "Presença de múltiplos caracteres '@'."
+
+    usuario, dominio = email.split("@")
+
+    # Análise do nome de usuário
+    if not usuario:
+        return "Nome de usuário ausente antes do '@'."
+    if usuario.startswith("."):
+        return "O nome de usuário não pode iniciar com ponto."
+    if usuario.endswith("."):
+        return "O nome de usuário não pode terminar com ponto."
+    if ".." in usuario:
+        return "O nome de usuário contém pontos consecutivos."
+    if not re.fullmatch(r"[A-Za-z0-9._+-]+", usuario):
+        return "O nome de usuário contém caracteres não permitidos."
+
+    # Análise do domínio
+    if not dominio:
+        return "Domínio ausente após o '@'."
+    if "." not in dominio:
+        return "O domínio não possui uma extensão (TLD)."
+
+    partes_dominio = dominio.split(".")
+
+    if "" in partes_dominio:
+        return "O domínio contém blocos vazios ou pontos consecutivos."
+
+    for parte in partes_dominio[:-1]:
+        if parte.startswith("-"):
+            return "Subdomínio iniciado por hífen."
+        if parte.endswith("-"):
+            return "Subdomínio terminado por hífen."
+        if not re.fullmatch(r"[A-Za-z0-9-]+", parte):
+            return "Subdomínio contém caracteres inválidos."
+
+    extensao = partes_dominio[-1]
+
+    if len(extensao) < 2:
+        return "A extensão do domínio deve ter no mínimo 2 caracteres."
+    if not extensao.isalpha():
+        return "A extensão do domínio deve conter exclusivamente letras."
+
+    return "Formato geral do endereço inconsistente."
+
+
+# Execução principal
+validos = []
+invalidos = []
+
+print("=== SISTEMA DE VALIDAÇÃO DE E-MAILS ===")
+
+for i in range(1, 6):
+    entrada = input(f"Informe o {i}º e-mail: ").strip()
+
+    if re.fullmatch(padrao_email, entrada):
+        validos.append(entrada)
+    else:
+        motivo = diagnosticar_erro(entrada)
+        invalidos.append((entrada, motivo))
+
+# Apresentação dos resultados
+print("\n--- E-MAILS ACEITOS ---")
+if validos:
+    for item in validos:
+        print(f"✔ {item}")
+else:
+    print("Nenhum e-mail válido registrado.")
+
+print("\n--- E-MAILS REJEITADOS ---")
+if invalidos:
+    for item, motivo in invalidos:
+        print(f"✖ {item} -> Motivo: {motivo}")
+else:
+    print("Nenhum e-mail inválido registrado.")
+
+```
+
+---
+
+## 4. Testes de Validação
+
+### Caso de Teste Standard
+
+Avaliação com o conjunto de dados base fornecido na atividade:
+
+| Endereço de E-mail | Classificação | Justificativa Sintática |
+| --- | --- | --- |
+| `maria@gmail.com` | **Válido** | Estrutura completa: usuário, `@`, domínio e TLD. |
+| `joao.silva@udf.edu.br` | **Válido** | Uso correto de ponto no usuário e múltiplos subdomínios. |
+| `estudante_01@faculdade.com` | **Válido** | Presença aceita de underline e numerais no usuário. |
+| `pedro.gmail.com` | **Inválido** | Ausência do separador `@`. |
+| `ana@dominio` | **Inválido** | Ausência da extensão TLD após o domínio. |
+
+#### Exemplo de Saída no Terminal
+
+```text
+=== SISTEMA DE VALIDAÇÃO DE E-MAILS ===
+Informe o 1º e-mail: maria@gmail.com
+Informe o 2º e-mail: joao.silva@udf.edu.br
+Informe o 3º e-mail: estudante_01@faculdade.com
+Informe o 4º e-mail: pedro.gmail.com
+Informe o 5º e-mail: ana@dominio
+
+--- E-MAILS ACEITOS ---
+✔ maria@gmail.com
+✔ joao.silva@udf.edu.br
+✔ estudante_01@faculdade.com
+
+--- E-MAILS REJEITADOS ---
+✖ pedro.gmail.com -> Motivo: Ausência do caractere obrigatório '@'.
+✖ ana@dominio -> Motivo: O domínio não possui uma extensão (TLD).
+
+```
+
+---
+
+## 5. Validação das Regras Avançadas (Desafio)
+
+Casos de borda testados para verificar o comportamento das regras do desafio:
+
+| Entrada | Status | Regra Aplicada |
+| --- | --- | --- |
+| `.maria@gmail.com` | **Inválido** | Ponto inicial no usuário bloqueado. |
+| `maria.@gmail.com` | **Inválido** | Ponto adjacente ao `@` bloqueado. |
+| `maria..silva@gmail.com` | **Inválido** | Repetição de pontos consecutivos barrada. |
+| `maria@-gmail.com` | **Inválido** | Hífen no início do subdomínio bloqueado. |
+| `maria@gmail-.com` | **Inválido** | Hífen no final do subdomínio bloqueado. |
+| `maria.silva@gmail.com` | **Válido** | Conformidade com pontuação intermediária. |
+| `contato+curso@exemplo.com.br` | **Válido** | Caractere especial `+` permitido no usuário. |
+
+---
+
+## 6. Fundamentação em Linguagens Formais e Autômatos
+
+As expressões regulares pertencem à hierarquia de Chomsky como geradoras de **Linguagens Regulares**.
+
+No contexto da teoria da computação, a especificação das cadeias de e-mail aceitas define uma linguagem formal $L$, cuja gramática pode ser resumida na concatenação de sublinguagens:
+
+$$\text{Linguagem} = \text{Usuário} \cdot \{ @ \} \cdot \text{Domínio} \cdot \{ . \} \cdot \text{Extensão}$$
+
+### Processo de Decisão
+
+A Regex atua como uma função de reconhecimento sobre uma cadeia de caracteres $w$:
+
+* Se $w \in L$, o reconhecedor transita para um **estado final de aceitação**.
+* Se $w \notin L$, o processo falha e a cadeia é **rejeitada**.
+
+Toda linguagem regular descrita por uma Regex pode ser processada por um **Autômato Finito Determinístico (AFD)**. O fluxo sequencial do autômato para este validador segue o diagrama simplificado:
+
+$$\text{Estado Inicial} \xrightarrow{\text{Usuário}} q_1 \xrightarrow{@} q_2 \xrightarrow{\text{Domínio}} q_3 \xrightarrow{.} q_4 \xrightarrow{\text{Extensão}} \left(\text{Estado Final}\right)$$
+
+Qualquer desvio do padrão (como ausência do `@` ou presença de caracteres proibidos) força a transição para um estado de erro, descartando a entrada.
+
+---
+
+## 7. Conclusão
+
+A atividade prática demonstrou a aplicação de Regex no reconhecimento de padrões para validação de dados. O algoritmo construído não apenas categoriza as entradas entre válidas e inválidas, mas também oferece um diagnóstico explícito do erro de formatação.
+
+Com a inclusão das regras do desafio, a expressão regular cobriu diversos casos de borda sintáticos comumente ignorados em verificações simples. Por fim, cabe ressaltar que a validação via Regex é estritamente **sintática**: ela garante que a cadeia obedece à gramática estabelecida, mas não atesta a existência real do domínio ou da caixa postal no servidor de e-mail.
